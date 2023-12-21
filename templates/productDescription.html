@@ -8,7 +8,7 @@
 <body>
 	<div id="title">
 		<a href="/">
-			<img id="logo" src= {{ url_for('static', filename='images/logo.png') }} />
+			<h1 style="color:white">HOME</h1>
 		</a>
 		<form action="/">
 			<input id="searchBox" type="text" name="searchQuery">
@@ -29,7 +29,7 @@
 			</div>
 		</div>
 		{% endif %}
-		<div id="kart">
+		<div id="cart">
 			<a class="link" href="/cart">
 				<img src={{url_for('static', filename='images/shoppingCart.png')}} id="cartIcon" />
 				CART {{noOfItems}}

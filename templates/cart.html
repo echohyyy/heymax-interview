@@ -8,7 +8,7 @@
 <body>
 	<div id="title">
 		<a href="/">
-			<h1>HOME</h1>
+			<h1 style="color:white">HOME</h1>
 		</a>
 		<form action="/">
 			<input id="searchBox" type="text" name="searchQuery", value = "{{searchQuery}}">
@@ -58,7 +58,7 @@
 					</div>
 					<div id="itemPrice">
 						${{row[2]}}
-						<form action="{{ url_for('update_cart_item', product_id=row[0]) }}" method="post">
+						<form action="{{ url_for('updateCartItem', product_id=row[0]) }}" method="post">
 							<label for="quantity_{{ row[0] }}">Quantity:</label>
 							<input type="number" id="quantity_{{ row[0] }}" name="quantity" value="{{ row[5] }}" min="1">
 							<input type="submit" value="Update">
@@ -75,8 +75,8 @@
 				</div>
 			</div>
 		</div>
-		<form action="/cart" method="post" enctype="multipart/form-data"> 
-			Shipping Address: <input type="text" address="address"><br>
+		<form action="/cart" method="POST" enctype="multipart/form-data"> 
+			Shipping Address: <input type="text" name="address"><br>
 			Choose Your Payment Method: <select name="paymentMethod">
 				<option value="CreditCard">CreditCard</option>
 				<option value="PayPal">PayPal</option>
