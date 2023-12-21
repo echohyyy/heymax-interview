@@ -54,6 +54,23 @@ def logout():
     session.pop('email', None)
     return redirect(url_for('root'))
 
+@app.route("/remove")
+def remove():
+    productId = request.args.get('productId')
+    with sqlite3.connect('database.db') as conn:
+        try:
+            cur = conn.cursor()
+            cur.execute('DELETE FROM products WHERE productId = ?', (productId, ))
+            conn.commit()
+            msg = "Deleted successsfully"
+        except:
+            conn.rollback()
+            msg = "Error occured"
+    conn.close()
+    return redirect(url_for('root'))
+
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -282,8 +299,15 @@ def productDescription():
         cur = conn.cursor()
         cur.execute('SELECT productId, name, price, description, image, inventoryAmount FROM products WHERE productId = ?', (productId, ))
         productData = cur.fetchone()
+        if loggedIn:
+            email = session['email'] if loggedIn else ' '
+            app.logger.info(email)
+            cur.execute("SELECT kind FROM users WHERE email = ?", (email,))
+            kind = cur.fetchone()[0]
+        else: 
+            kind = 'none'
     conn.close()
-    return render_template("productDescription.html", data=productData, loggedIn = loggedIn, name = name, noOfItems = noOfItems)
+    return render_template("productDescription.html", userType = kind, data=productData, loggedIn = loggedIn, name = name, noOfItems = noOfItems)
 
 def is_valid(email, password):
     con = sqlite3.connect('database.db')
