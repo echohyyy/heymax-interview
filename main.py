@@ -104,7 +104,21 @@ def addItem():
 
 @app.route('/cart',methods=['GET'])
 def cart():
-    return render_template('cart.html')
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    loggedIn, name, noOfItems = getLoginDetails()
+    email = session['email']
+    with sqlite3.connect('database.db') as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT userId FROM Users WHERE email = ?", (email, ))
+        userId = cur.fetchone()[0]
+        cur.execute("SELECT products.productId, products.name, products.price, products.image, products.inventoryAmount, cart.inventoryAmount FROM products, cart WHERE products.productId = cart.productId AND cart.userId = ?", (userId, ))
+        products = cur.fetchall()
+    totalPrice = 0
+    for row in products:
+        totalPrice += row[2]
+
+    return render_template("cart.html", products = products, totalPrice=totalPrice, loggedIn=loggedIn, name = name, noOfItems=noOfItems)
 
 @app.route('/account/orders',methods=['GET'])
 def orders():
