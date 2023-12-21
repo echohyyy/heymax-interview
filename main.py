@@ -120,12 +120,12 @@ def cart():
             products = cur.fetchall()
         totalPrice = 0
         for row in products:
-            totalPrice += row[2]
+            totalPrice += row[2] * row[5]
 
         return render_template("cart.html", products = products, totalPrice=totalPrice, loggedIn=loggedIn, name = name, noOfItems=noOfItems)
     else:
         # checkout
-        shippingAddress = request.args.get('shippingAddress', '')  
+        shippingAddress = request.form['address']
         with sqlite3.connect('database.db') as conn:
             cur = conn.cursor()
 
@@ -145,22 +145,23 @@ def cart():
                 return render_template('checkout.html',  loggedIn=loggedIn, name=name, message="Nothing to checkout.")
 
             for productId, quantity in cart_items:
-                cur.execute("SELECT inventoryAmount FROM Products WHERE productId = ?", (productId,))
-                inventoryAmount = cur.fetchone()[0]
+                cur.execute("SELECT inventoryAmount, price FROM Products WHERE productId = ?", (productId,))
+                productData = cur.fetchone()
+                inventoryAmount = productData[0]
+                price = productData[1] * quantity
                 if quantity > inventoryAmount:
                     return render_template('checkout.html', loggedIn=loggedIn, name=name, message="Insufficient stock for one or more items.")
+                else:
+                    # Insert a transaction record
+                    cur.execute('''INSERT INTO Transactions (date, userId, productId, quantity, shippingAddress, price) 
+                                VALUES (?, ?, ?, ?, ?, ?)''', (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), userId, productId, quantity, shippingAddress, price))
+                    
+                    # Reduce the inventoryAmount by 1
+                    cur.execute("UPDATE Products SET inventoryAmount = inventoryAmount - 1 WHERE productId = ?", (productId,))
+
 
             if any(inventoryAmount <= 0 for _, inventoryAmount in products):
                 return render_template('checkout.html', loggedIn=loggedIn, name=name, message="Error: One or more products are out of stock.")
-
-            # Process each product in the cart
-            for productId, _ in products:
-                # Insert a transaction record
-                cur.execute('''INSERT INTO Transactions (date, userId, productId, quantity, shippingAddress) 
-                               VALUES (?, ?, ?, ?, 1)''', (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), userId, productId, quantity, shippingAddress))
-                
-                # Reduce the inventoryAmount by 1
-                cur.execute("UPDATE Products SET inventoryAmount = inventoryAmount - 1 WHERE productId = ?", (productId,))
 
             # Clear the user's cart
             cur.execute("DELETE FROM cart WHERE userId = ?", (userId,))
@@ -168,6 +169,54 @@ def cart():
             conn.commit()
 
         return render_template('checkout.html',  loggedIn=loggedIn, name=name, message="Transaction successfully made.")
+
+@app.route('/updateCartItem/<int:product_id>', methods=['POST'])
+def updateCartItem(product_id):
+    new_quantity = int(request.form['quantity'])
+
+    with sqlite3.connect('database.db') as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT userId FROM users WHERE email = ?", (session['email'],))
+        user_id = cur.fetchone()[0]
+        cur.execute("UPDATE cart SET inventoryAmount = ? WHERE userId = ? AND productId = ?", (new_quantity, user_id, product_id))
+        conn.commit()
+        flash("successfully update")
+
+    return redirect(url_for('cart'))  # Redirect to the cart view page
+    
+
+
+@app.route("/addToCart")
+def addToCart():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+    else:
+        productId = int(request.args.get('productId'))
+        quantity = max(int(request.args.get('quantity', 1)), 1)  # Ensure quantity is at least 1
+        with sqlite3.connect('database.db') as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT userId FROM users WHERE email = ?", (session['email'], ))
+            userId = cur.fetchone()[0]
+
+            # Check if the product is already in the cart
+            cur.execute("SELECT inventoryAmount FROM cart WHERE userId = ? AND productId = ?", (userId, productId))
+            result = cur.fetchone()
+            try:
+                # Product is in the cart, update the quantity
+                if result:
+                    new_quantity = result[0] + quantity
+                    cur.execute("UPDATE cart SET inventoryAmount = ? WHERE userId = ? AND productId = ?", (new_quantity, userId, productId))
+                else:
+                    # Product is not in the cart, insert a new row
+                    cur.execute("INSERT INTO cart (userId, productId, inventoryAmount) VALUES (?, ?, ?)", (userId, productId, quantity))
+
+                conn.commit()
+                msg = "Added successfully"
+            except:
+                conn.rollback()
+                msg = "Error occured"
+        conn.close()
+        return redirect(url_for('cart'))
 
 @app.route("/removeFromCart")
 def removeFromCart():
@@ -191,7 +240,32 @@ def removeFromCart():
 
 @app.route('/account/orders',methods=['GET'])
 def orders():
-    return render_template('orders.html')
+    email = session.get('email')
+    loggedIn, name, noOfItems = getLoginDetails()
+    if not email:
+        return redirect(url_for('login'))  
+    
+    with sqlite3.connect('database.db') as conn:
+        cur = conn.cursor()
+
+        cur.execute("SELECT userId FROM users WHERE email = ?", (email,))
+        userId = cur.fetchone()[0]
+
+        cur.execute('''SELECT t.date
+                       FROM Transactions t
+                       WHERE t.userId = ?
+                       GROUP BY t.date''', (userId,))
+        dates = cur.fetchall()
+        app.logger.info(type(dates[0][0]))
+        transactions = []
+        for date in dates:
+            cur.execute('''SELECT t.orderNumber, t.date, t.price, p.name, t.quantity, t.shippingAddress
+                        FROM Transactions t
+                        JOIN Products p ON t.productId = p.productId
+                        WHERE t.userId = ? AND t.date = ?''', (userId, date[0]))
+            transactions.append(cur.fetchall())
+
+    return render_template('orders.html', noOfItems = noOfItems, loggedIn=loggedIn, name=name, transactions=transactions)
 
 @app.route("/productDescription")
 def productDescription():

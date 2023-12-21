@@ -2,6 +2,11 @@
 <html lang="en">
 
 <head>
+    <style>
+        .transaction {border-block: solid;
+            writing-mode: horizontal-tb;}
+    </style>
+
     <meta charset="UTF-8">
     <title>Your Orders</title>
     <link rel="stylesheet" href={{ url_for('static', filename='css/topStyle.css' ) }} />
@@ -10,7 +15,7 @@
 <body>
 <div id="title">
     <a href="/">
-        <img id="logo" src= {{ url_for('static', filename='images/logo.png') }} />
+        <h1 style="color:white">HOME</h1>
     </a>
 
     {% if not loggedIn %}
@@ -27,7 +32,7 @@
         </div>
     </div>
     {% endif %}
-    <div id="kart">
+    <div id="cart">
         <a class="link" href="/cart">
             <img src={{url_for('static', filename='images/shoppingCart.png')}} id="cartIcon" />
             CART {{noOfItems}}
@@ -36,23 +41,28 @@
 </div>
 <div class="container">
 <h1>Your Orders</h1>
-<table>
+{% for transaction in transactions %}
+<table class="transaction">
     <tr>
         <th>Order Number</th>
         <th>Date</th>
         <th>Product Name</th>
         <th>Quantity</th>
         <th>Price</th>
+        <th>Shipping Address</th>
     </tr>
-    {% for order in transactions %}
-    <tr>
-        <td>{{ order[0] }}</td>
-        <td>{{ order[1] }}</td>
-        <td>{{ order[3] }}</td>
-        <td>{{ order[4] }}</td>
-        <td>{{ order[2] }}</td>
-    </tr>
+    {% for order in transaction %}
+        <tr>
+            <th>{{ order[0] }}</th>
+            <th>{{ order[1] }}</th>
+            <th>{{ order[3] }}</th>
+            <th>{{ order[4] }}</th>
+            <th>{{ order[2] }}</th>
+            <th>{{ order[5] }}</th>
+        </tr>
     {% endfor %}
+    <br>
+{% endfor %}
 </table>
 </div>
 
