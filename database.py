@@ -38,6 +38,7 @@ conn.execute('''CREATE TABLE Transactions
               quantity INTEGER,
               userId INTEGER,
               productId INTEGER,
+              shippingAddress TEXT,
               FOREIGN KEY(userId) REFERENCES Users(userId),
               FOREIGN KEY(productId) REFERENCES Products(productId))''')
 
