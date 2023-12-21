@@ -39,6 +39,7 @@ conn.execute('''CREATE TABLE Transactions
               userId INTEGER,
               productId INTEGER,
               shippingAddress TEXT,
+              date TEXT,
               FOREIGN KEY(userId) REFERENCES Users(userId),
               FOREIGN KEY(productId) REFERENCES Products(productId))''')
 
