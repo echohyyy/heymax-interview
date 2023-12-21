@@ -1,0 +1,16 @@
+<html>
+<head>
+<title>	Login Page </title>
+<link rel="stylesheet" href={{ url_for('static', filename='css/topStyle.css' ) }} />
+</head>
+<body>
+<div class="container">
+<p> {{error}} </p>
+<form action="/login" method="POST">
+	<p>Email:<input type="text" name="email"></p>
+	<p>Password: <input type="password" name="password"></p>
+	<p><input type="submit"></p>
+</form>
+</div>
+</body>
+</html>

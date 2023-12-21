@@ -14,15 +14,20 @@
 			<input id="searchBox" type="text" name="searchQuery", value = "{{searchQuery}}">
 			<input id="searchButton" type="submit" value="Search">
 		</form>
-
+		{% if not loggedIn %}
+		<div id="signInButton">
+			<a class="link" href="/login">Sign In</a>
+		</div>
+		{% else %}
 		<div class="dropdown">
-			<button class="dropbtn">Hello, <br>{{firstName}}</button>
+			<button class="dropbtn">Hello, <br>{{name}}</button>
 			<div class="dropdown-content">
 				<a href="/account/orders">Your orders</a>
+				<a href="/logout">Sign Out</a>
 			</div>
 		</div>
-
-		<div id="kart">
+		{% endif %}
+		<div id="cart">
 			<a class="link" href="/cart">
 				<img src={{url_for('static', filename='images/shoppingCart.png')}} id="cartIcon" />
 				CART {{noOfItems}}
@@ -30,8 +35,21 @@
 		</div>
 	</div>
 <div class="display">
-	<div>
+		<div>
 		<h2>Items</h2>
+		<div class="item-container">
+			{% for item in itemData %}
+			<div class="item">
+				<div class="product-name">{{ item[1] }}</div>
+				<a href="/productDescription?productId={{item[0]}}">
+					<img src="{{row[4]}}" class="item-image" />
+				</a>
+				<div class="product-price">${{ item[2] }}</div>
+				<!-- <div class="product-description">{{ item[3] }}</div> -->
+				<div class="product-stock">Stock: {{ item[4] }}</div>
+			</div>
+			{% endfor %}
+		</div>
 	</div>
 </div>
 </body>

@@ -12,11 +12,64 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
+
+def getLoginDetails():
+    with sqlite3.connect('database.db') as conn:
+        cur = conn.cursor()
+        if 'email' not in session:
+            loggedIn = False
+            name = ''
+            noOfItems = 0
+        else:
+            loggedIn = True
+            cur.execute("SELECT userId, name FROM Users WHERE email = ?", (session['email'], ))
+            userId, name = cur.fetchone()
+            cur.execute("SELECT count(productId) FROM Cart WHERE userId = ?", (userId, ))
+            noOfItems = cur.fetchone()[0]
+    conn.close()
+    return (loggedIn, name, noOfItems)
+
 @app.route("/")
 def root():
-    return render_template('home.html')
+    loggedIn, name, noOfItems = getLoginDetails()
+    with sqlite3.connect('database.db') as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT productId, name, price, description, image, inventoryAmount FROM Products")
+        itemData = cur.fetchall()
+    conn.close()
+        
+    return render_template('home.html', itemData=itemData, loggedIn=loggedIn, name=name, noOfItems=noOfItems)
 
-# 
+@app.route("/logout")
+def logout():
+    session.pop('email', None)
+    return redirect(url_for('root'))
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        
+        email = request.form['email']
+        password = request.form['password']
+        app.logger.info(email+password)
+
+        if is_valid(email, password):
+            session['email'] = email
+            app.logger.info("post success")
+            return redirect(url_for('root'))
+        else:
+            error = 'Invalid UserId / Password'
+            app.logger.info(error)
+            return render_template('login.html', error=error)
+    else:
+        if 'email' in session:
+            return redirect(url_for('root'))
+        else:
+            return render_template('login.html', error='')
+        
+
+
+# admin method to additems
 @app.route("/addItem", methods=["GET", "POST"])
 def addItem():
     if request.method == "POST":
@@ -43,8 +96,9 @@ def addItem():
     else:
         with sqlite3.connect('database.db') as conn:
             cur = conn.cursor()
-            cur.execute("SELECT categoryId, name FROM categories")
+            cur.execute("SELECT categoryId, name FROM Categories")
             categories = cur.fetchall()
+            
         conn.close()
         return render_template('addItem.html',categories=categories)
 
@@ -56,6 +110,26 @@ def cart():
 def orders():
     return render_template('orders.html')
 
+@app.route("/productDescription")
+def productDescription():
+    loggedIn, name, noOfItems = getLoginDetails()
+    productId = request.args.get('productId')
+    with sqlite3.connect('database.db') as conn:
+        cur = conn.cursor()
+        cur.execute('SELECT productId, name, price, description, image, inventoryAmount FROM products WHERE productId = ?', (productId, ))
+        productData = cur.fetchone()
+    conn.close()
+    return render_template("productDescription.html", data=productData, loggedIn = loggedIn, name = name, noOfItems = noOfItems)
+
+def is_valid(email, password):
+    con = sqlite3.connect('database.db')
+    cur = con.cursor()
+    cur.execute('SELECT email, password FROM Users')
+    data = cur.fetchall()
+    for row in data:
+        if row[0] == email and row[1] == password:
+            return True
+    return False
 
 if __name__ == '__main__':
     app.run(debug=True)
