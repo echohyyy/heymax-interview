@@ -2,8 +2,83 @@
 <html>
 <head>
 <title>Your Cart</title>
+<link rel="stylesheet" href={{url_for('static', filename='css/cart.css')}} />
+<link rel="stylesheet" href={{url_for('static', filename='css/topStyle.css') }} />
 </head>
 <body>
+	<div id="title">
+		<a href="/">
+			<h1>HOME</h1>
+		</a>
+		<form action="/">
+			<input id="searchBox" type="text" name="searchQuery", value = "{{searchQuery}}">
+			<input id="searchButton" type="submit" value="Search">
+		</form>
+		{% if not loggedIn %}
+		<div id="signInButton">
+			<a class="link" href="/login">Sign In</a>
+		</div>
+		{% else %}
+		<div class="dropdown">
+			<button class="dropbtn">Hello, <br>{{name}}</button>
+			<div class="dropdown-content">
+				<a href="/account/orders">Your orders</a>
+				<a href="/logout">Sign Out</a>
+			</div>
+		</div>
+		{% endif %}
+		<div id="cart">
+			<a class="link" href="/cart">
+				<img src={{url_for('static', filename='images/shoppingCart.png')}} id="cartIcon" />
+				CART {{noOfItems}}
+			</a>
+		</div>
+	</div>
+
+	<div class="container">
+		<div id="cartItems">
+			<h2>Shopping Cart</h2>
+			<div id="tableItems">
+				{% for row in products %}
+				<div>
+					<hr id="seperator">
+					<div id="itemImage">
+						<a href="/productDescription?productId={{row[0]}}">
+							<img src={{ url_for('static', filename='uploads/' + row[3]) }} id="itemImage" />
+						</a>
+					</div>
+					<div id="itemName">
+						<span id="itemNameTag">{{row[1]}}</span><br>
+						{% if row[4] > 0%}
+							In stock<br>
+						{% else %}
+							Out of stock<br>
+						{% endif %}
+						<a href="/removeFromCart?productId={{row[0]}}">Remove</a>
+					</div>
+					<div id="itemPrice">
+						${{row[2]}}
+						<form action="{{ url_for('update_cart_item', product_id=row[0]) }}" method="post">
+							<label for="quantity_{{ row[0] }}">Quantity:</label>
+							<input type="number" id="quantity_{{ row[0] }}" name="quantity" value="{{ row[5] }}" min="1">
+							<input type="submit" value="Update">
+						</form>
+					</div>
+					<div id="stock">
+						Stock: {{row[4]}}
+					</div>
+				</div>
+				{% endfor %}
+				<hr id="seperator">
+				<div id="total">
+					<span id="subtotal">Subtotal</span> : ${{totalPrice}}
+				</div>
+			</div>
+		</div>
+		<form action="/checkout" method="post">
+			<input type="submit" value="Proceed to Checkout">
+		</form>
+		</div>
 </body>
 </html>
 

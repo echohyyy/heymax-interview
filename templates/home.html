@@ -23,6 +23,7 @@
 			<button class="dropbtn">Hello, <br>{{name}}</button>
 			<div class="dropdown-content">
 				<a href="/account/orders">Your orders</a>
+				<hr>
 				<a href="/logout">Sign Out</a>
 			</div>
 		</div>
@@ -42,11 +43,11 @@
 			<div class="item">
 				<div class="product-name">{{ item[1] }}</div>
 				<a href="/productDescription?productId={{item[0]}}">
-					<img src="{{row[4]}}" class="item-image" />
+					<img src="{{item[4]}}" class="item-image" />
 				</a>
 				<div class="product-price">${{ item[2] }}</div>
 				<!-- <div class="product-description">{{ item[3] }}</div> -->
-				<div class="product-stock">Stock: {{ item[4] }}</div>
+				<div class="product-stock">Stock: {{ item[5] }}</div>
 			</div>
 			{% endfor %}
 		</div>
