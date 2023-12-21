@@ -7,10 +7,10 @@ conn = sqlite3.connect('database.db')
 conn.execute("DROP TABLE IF EXISTS Transactions")
 conn.execute("DROP TABLE IF EXISTS Cart")
 conn.execute("DROP TABLE IF EXISTS Products")
-conn.execute("DROP TABLE IF EXISTS Customers")
-conn.execute("DROP TABLE IF EXISTS categories")
+conn.execute("DROP TABLE IF EXISTS Users")
+conn.execute("DROP TABLE IF EXISTS Categories")
 
-conn.execute('''CREATE TABLE categories
+conn.execute('''CREATE TABLE Categories
             (categoryId INTEGER PRIMARY KEY,
             name TEXT)''')
 
@@ -21,12 +21,13 @@ conn.execute('''CREATE TABLE Products
               image TEXT,
               inventoryAmount INTEGER,
               price REAL,
-              FOREIGN KEY(categoryId) REFERENCES categories(categoryId))''')
+              categoryId INTEGER,
+              FOREIGN KEY(categoryId) REFERENCES Categories(categoryId))''')
 
 
-# Customer kind: Normal/Admin
-conn.execute('''CREATE TABLE Customers
-             (customerId INTEGER PRIMARY KEY,
+# User kind: customer/admin
+conn.execute('''CREATE TABLE Users
+             (userId INTEGER PRIMARY KEY,
               name TEXT,
 			  password TEXT,
               email TEXT,
@@ -35,16 +36,16 @@ conn.execute('''CREATE TABLE Customers
 conn.execute('''CREATE TABLE Transactions
              (orderNumber INTEGER PRIMARY KEY,
               quantity INTEGER,
-              customerId INTEGER,
+              userId INTEGER,
               productId INTEGER,
-              FOREIGN KEY(customerId) REFERENCES Customers(customerId),
+              FOREIGN KEY(userId) REFERENCES Users(userId),
               FOREIGN KEY(productId) REFERENCES Products(productId))''')
 
 conn.execute('''CREATE TABLE Cart
-            (customerId INTEGER,
+            (userId INTEGER,
              productId INTEGER,
              inventoryAmount INTEGER,
-             FOREIGN KEY(customerId) REFERENCES Customers(customerId),
+             FOREIGN KEY(userId) REFERENCES Users(userId),
              FOREIGN KEY(productId) REFERENCES Products(productId))''')
 
 conn.commit()
