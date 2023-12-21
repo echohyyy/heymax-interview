@@ -76,7 +76,11 @@
 			<input type="number" id="quantity" name="quantity" min="1" value="1" required>
 			<input type="submit" value="Add to Cart">
 		</form>
-		
+	{% if userType == 'admin'%}
+	<form action="/remove?{{request.args.get('productId')}}" method="post">
+		<h1 style="color:white">Remove this item(Admin)</h1>
+	</form>
+	{% endif %}
 	</div>
 </div>
 </div>
