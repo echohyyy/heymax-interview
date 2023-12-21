@@ -17,7 +17,11 @@
     <a href="/">
         <h1 style="color:white">HOME</h1>
     </a>
-
+    {% if userType == 'admin'%}
+    <a href="/addItem">
+        <h1 style="color:white">Admin Mode</h1>
+    </a>
+	{% endif %}
     {% if not loggedIn %}
     <div id="signInButton">
         <a class="link" href="/login">Sign In</a>

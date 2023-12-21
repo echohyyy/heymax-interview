@@ -10,6 +10,11 @@
 		<a href="/">
 			<h1 style="color:white">HOME</h1>
 		</a>
+		{% if userType == 'admin'%}
+		<a href="/addItem">
+			<h1 style="color:white">Admin Mode</h1>
+		</a>
+		{% endif %}
 		<form action="/">
 			<input id="searchBox" type="text" name="searchQuery", value = "{{searchQuery}}">
 			<input id="searchButton" type="submit" value="Search">

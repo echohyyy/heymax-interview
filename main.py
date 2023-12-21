@@ -38,9 +38,16 @@ def root():
         cur = conn.cursor()
         cur.execute("SELECT productId, name, price, description, image, inventoryAmount FROM Products")
         itemData = cur.fetchall()
+        if loggedIn:
+            email = session['email'] if loggedIn else ' '
+            app.logger.info(email)
+            cur.execute("SELECT kind FROM users WHERE email = ?", (email,))
+            kind = cur.fetchone()[0]
+        else: 
+            kind = 'none'
     conn.close()
         
-    return render_template('home.html', itemData=itemData, loggedIn=loggedIn, name=name, noOfItems=noOfItems)
+    return render_template('home.html', userType = kind, itemData=itemData, loggedIn=loggedIn, name=name, noOfItems=noOfItems)
 
 @app.route("/logout")
 def logout():
