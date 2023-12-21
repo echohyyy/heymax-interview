@@ -75,7 +75,13 @@
 				</div>
 			</div>
 		</div>
-		<form action="/checkout" method="post">
+		<form action="/cart" method="post" enctype="multipart/form-data"> 
+			Shipping Address: <input type="text" address="address"><br>
+			Choose Your Payment Method: <select name="paymentMethod">
+				<option value="CreditCard">CreditCard</option>
+				<option value="PayPal">PayPal</option>
+				<option value="Others">Others</option>
+			</select><br>
 			<input type="submit" value="Proceed to Checkout">
 		</form>
 		</div>
