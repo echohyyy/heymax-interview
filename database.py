@@ -36,6 +36,7 @@ conn.execute('''CREATE TABLE Users
 conn.execute('''CREATE TABLE Transactions
              (orderNumber INTEGER PRIMARY KEY,
               quantity INTEGER,
+              price INTEGER,
               userId INTEGER,
               productId INTEGER,
               shippingAddress TEXT,
